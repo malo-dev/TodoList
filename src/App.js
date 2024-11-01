@@ -1,116 +1,57 @@
-import React, {
-  useState,
-  useEffect,
-  useContext,
-  useReducer,
-  useRef,
-  useCallback,
-  useMemo,
-  useLayoutEffect,
-  useDebugValue,
-  useImperativeHandle,
-  forwardRef
-} from 'react';
+import './App.css';
+import { useState } from 'react';
 
-// 1. Création d'un contexte pour partager l'état des tâches
-const TaskContext = React.createContext();
-
-const taskReducer = (state, action) => {
-  switch (action.type) {
-    case 'ADD_TASK':
-      return [...state, { id: Date.now(), text: action.payload }];
-    case 'REMOVE_TASK':
-      return state.filter(task => task.id !== action.payload);
-    default:
-      return state;
+function App() {
+  const [state,setState] = useState({
+    stateArray : ['None'],
+    isFilledString : '',
+    incrementedValue : 0
+  })
+  let arrayOfTasks = ['yufytct']
+  let arrayTasks = [''] ;
+  
+  const handleChange = (e) =>{
+    let valueGet = e.target.value
+    setState({
+      stateArray : [...arrayOfTasks],
+    isFilledString : valueGet,
+    })
   }
-};
+  const handleSubmit = () =>{
+      arrayOfTasks.push(state.isFilledString)
+      setState({
+        stateArray : [...arrayOfTasks],
+        incrementedValue : state.incrementedValue +1
+      })
+      arrayTasks[state.incrementedValue] = arrayOfTasks[arrayOfTasks.length-1]
+      
+      console.log( arrayTasks)
 
-// 2. Fournisseur de contexte avec useReducer
-const TaskProvider = ({ children }) => {
-  const [tasks, dispatch] = useReducer(taskReducer, []);
+  }
   return (
-    <TaskContext.Provider value={{ tasks, dispatch }}>
-      {children}
-    </TaskContext.Provider>
-  );
-};
+    <div className="App">
+     
+      <div>
+      <input placeholder='entrer la tache' onChange={handleChange}/>
+      <button onClick={handleSubmit}>Ajouter</button>
+      <button>Suprimer</button>
+      <button>Modifier</button>
+      </div>
 
-// 3. Composant de saisie de tâche avec useRef et useImperativeHandle
-const InputField = forwardRef((_, ref) => {
-  const inputRef = useRef();
-
-  useImperativeHandle(ref, () => ({
-    focus: () => inputRef.current.focus(),
-  }));
-
-  return <input ref={inputRef} placeholder="Ajouter une tâche" />;
-});
-
-// 4. Composant principal de gestion des tâches
-const TaskApp = () => {
-  const [input, setInput] = useState('');
-  const { tasks, dispatch } = useContext(TaskContext);
-  const inputRef = useRef();
-
-  useDebugValue(tasks.length > 0 ? "Tasks present" : "No tasks");
-
-  const handleAddTask = () => {
-    if (input.trim()) {
-      dispatch({ type: 'ADD_TASK', payload: input });
-      setInput('');
-    }
-  };
-
-  // 5. useCallback pour optimiser les fonctions de suppression
-  const handleDeleteTask = useCallback((id) => {
-    dispatch({ type: 'REMOVE_TASK', payload: id });
-  }, [dispatch]);
-
-  // 6. useMemo pour compter les tâches
-  const taskCount = useMemo(() => tasks.length, [tasks]);
-
-  // 7. useLayoutEffect pour une action synchrone post-mutation DOM
-  useLayoutEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, []);
-
-  // 8. useEffect pour des effets asynchrones, comme le stockage local
-  useEffect(() => {
-    const savedTasks = JSON.parse(localStorage.getItem('tasks'));
-    if (savedTasks) {
-      savedTasks.forEach(task => dispatch({ type: 'ADD_TASK', payload: task.text }));
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-  }, [tasks]);
-
-  return (
-    <div>
-      <h1>Tâches ({taskCount})</h1>
-      <InputField ref={inputRef} />
-      <button onClick={handleAddTask}>Ajouter</button>
       <ul>
-        {tasks.map(task => (
-          <li key={task.id}>
-            {task.text} 
-            <button onClick={() => handleDeleteTask(task.id)}>Supprimer</button>
+
+    {
+      state.stateArray.map((task,index)=>{
+          return (
+            <li key={index}>
+            {task} {index}
           </li>
-        ))}
+          )
+      })
+    }
       </ul>
     </div>
   );
-};
-
-// Composant racine avec le fournisseur de contexte
-const App = () => (
-  <TaskProvider>
-    <TaskApp />
-  </TaskProvider>
-);
+}
 
 export default App;
